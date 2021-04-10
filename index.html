@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:creator" content="@ushik_ado" />
+    <meta name="twitter:title" content="風画伯ジェネレーター" />
+    <meta name="twitter:description" content="" />
+    <meta name="twitter:image" content="" />
+
+    <title>風画伯ジェネレーター</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.4.0/fabric.min.js" integrity="sha512-Ly9uI3QY88jVXCgkORH2A4Qqz5xYm1pew9jEgedgSpyEg9asvyPISK+CY7QNDN3CMftXU/KLNwQR7XUUo7Cqag==" crossorigin="anonymous"></script>
+    <style type="text/css">
+      body {
+        width:  100vw;
+        height: 100vh;
+        margin: 0;
+        background-color: black;
+      }
+      /* 画像より横に長い */
+      @media (min-aspect-ratio: 16/9) {
+        #canvas, .canvas-container, .upper-canvas {
+          position:   fixed;
+          width:      calc(100vh / 9 * 16);
+          min-width:  calc(100vh / 9 * 16);
+          max-width:  calc(100vh / 9 * 16);
+          height:     100vh;
+          min-height: 100vh;
+          max-height: 100vh;
+        }
+        #vertical-notice {
+          display: none;
+        }
+      }
+      /* 画像より縦に長い */
+      @media (max-aspect-ratio: 16/9) {
+        #canvas, .canvas-container, .upper-canvas {
+          position:   fixed;
+          width:      100vw;
+          min-width:  100vw;
+          max-width:  100vw;
+          height:     calc(100vw / 16 * 9);
+          min-height: calc(100vw / 16 * 9);
+          max-height: calc(100vw / 16 * 9);
+        }
+        #vertical-notice {
+          display: none;
+        }
+      }
+      /* 縦長の画面 */
+      @media (max-aspect-ratio: 1/1) {
+        #canvas, .canvas-container, .upper-canvas {
+          position:   fixed;
+          width:      100vw;
+          min-width:  100vw;
+          max-width:  100vw;
+          height:     calc(100vw / 16 * 9);
+          min-height: calc(100vw / 16 * 9);
+          max-height: calc(100vw / 16 * 9);
+        }
+        #vertical-notice {
+          display: block;
+          position: fixed;
+          top: 60%;
+          width: 100%;
+          color: white;
+          font-size: 2rem;
+          text-align: center;
+        }
+      }
+      #cover {
+        display: block;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(255,255,255, 0.5);
+        z-index: 1;
+      }
+      #help {
+        display: block;
+        padding: 2rem;
+        width: auto;
+        color: black;
+        font-size: 1.5rem;
+        text-align: center;
+      }
+      #help h1 {
+        margin: 0;
+        font-size: 2.5rem;
+      }
+      #help div {
+        display: inline-block;
+        text-align: left;
+        word-break: break-all;
+      }
+      #help p {
+        margin-block-start: 0.5rem;
+        margin-block-end: 0.5rem;
+      }
+      #finished {
+        max-width:  100vw;
+        max-height: 100vh;
+        display:    none;
+      }
+      #toggle-help {
+        position: fixed;
+        top: 0;
+        left: 0;
+        font-size: 3rem;
+        z-index: 2;
+      }
+      #show-menu {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 25vw;
+        font-size: 3rem;
+        z-index: 2;
+      }
+      #hide-menu {
+        display: inline-block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 25vw;
+        font-size: 3rem;
+        z-index: 2;
+      }
+      #controls {
+        position: fixed;
+        bottom: 0;
+        left: 25vw;
+      }
+      #undo, #redo {
+        width: 25vw;
+        font-size: 3rem;
+      }
+      #finish {
+        width: 25vw;
+        font-size: 3rem;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <canvas id="canvas"></canvas>
+      <img id="finished">
+      <div id="vertical-notice">画面を横にするといいかも</div>
+      <button id="show-menu" onclick="showMenu()">MENU▶</button>
+      <button id="hide-menu" onclick="hideMenu()">◀DRAW</button>
+      <div id="cover">
+        <div id="help">
+          <h1>風画伯ジェネレーター</h1>
+          <div>
+            <p>
+              1. モバイル端末の場合、画面を横にしてから上にスライドし、アドレスバーを隠す<br>
+              2. [◀DRAW] を押してから黒板に絵を描く<br>
+              3. 出来上がったら [完成🖼️] を押す<br>
+              4. 画像を右クリックまたは長押しして保存する
+            </p>
+            <p><small>
+              このサービスは公式と無関係のファンが提供しています。<br>
+              要望や不具合報告などは <a href="https://twitter.com/ushik_ado">@ushik_ado</a> まで。<br>
+              source: https://twitter.com/anime_yukiyuna/status/552784832078434304
+            </small></p>
+          </div>
+        </div>
+        <button id="toggle-help" onclick="toggleHelp()">ℹ️💁</button>
+        <div id="controls">
+          <button id="undo" onclick="undo()">元に戻す</button><button id="redo" onclick="redo()">やり直し</button><button id="finish" onclick="finish()"><strong>完成🖼️</strong></button>
+        </div>
+      </div>
+    </div>
+    <script>
+      var isRedoing = false;
+      var h = [];
+      var canvas = new fabric.Canvas('canvas', {width:1280, height:720});
+      canvas.isDrawingMode = true;
+      canvas.freeDrawingBrush = new fabric['PencilBrush'](canvas);
+      canvas.freeDrawingBrush.color = "white";
+      canvas.freeDrawingBrush.width = 5;
+      canvas.on('object:added',function(){
+        if(!isRedoing){
+          h = [];
+        }
+        isRedoing = false;
+      });
+
+      function clear() {
+        canvas.clear();
+        fabric.Image.fromURL('background.png', function(img) {
+          canvas.add(img);
+        });
+        h = [];
+      }
+      clear();
+
+      function undo() {
+        if(canvas._objects.length>1){
+          h.push(canvas._objects.pop());
+          canvas.renderAll();
+        }
+      }
+
+      function redo() {
+        if(h.length>0){
+          isRedoing = true;
+          canvas.add(h.pop());
+        }
+      }
+
+      function finish() {
+        fabric.Image.fromURL('foreground.png', function(img) {
+          canvas.add(img);
+          var dataURL = canvas.toDataURL('image/jpeg', 0.5);
+          $("#finished").attr("src", dataURL);
+          $("#finished").css("display", "block");
+          $(".canvas-container:first").css("display", "none");
+          $("#cover").css("display", "none");
+          $("#hide-menu").css("display", "none");
+        });
+      }
+
+      function toggleHelp() {
+        if ($("#help").css("display") == "none") {
+          $("#help").css("display", "block");
+        } else {
+          $("#help").css("display", "none");
+        }
+      }
+
+      function showMenu() {
+        $("#cover").css("display", "block");
+        $("#show-menu").css("display", "none");
+        $("#hide-menu").css("display", "inline-block");
+      }
+
+      function hideMenu() {
+        $("#cover").css("display", "none");
+        $("#show-menu").css("display", "inline-block");
+        $("#hide-menu").css("display", "none");
+      }
+    </script>
+  </body>
+</html>
